@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>حسابی ڕۆژانەی مەندوبەکان</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'Segoe UI',Tahoma,'Noto Naskh Arabic',Arial,sans-serif;
     background:#f0f4f8;color:#1e293b;font-size:15px}
   .app{display:flex;min-height:100vh}
-
   .sidebar{width:230px;flex:0 0 230px;background:#0f172a;color:#cbd5e1;
     padding:18px 14px;display:flex;flex-direction:column;gap:6px;
     position:sticky;top:0;height:100vh;overflow-y:auto}
@@ -32,7 +32,6 @@
   .side-foot button{background:#1e293b;border:0;color:#94a3b8;padding:9px;
     border-radius:9px;cursor:pointer;font-family:inherit;font-size:12px;transition:.15s}
   .side-foot button:hover{background:#334155;color:#fff}
-
   main{flex:1;padding:24px 28px 140px;overflow-x:hidden;position:relative}
   .page-head{display:flex;align-items:center;justify-content:space-between;
     flex-wrap:wrap;gap:14px;margin-bottom:22px}
@@ -41,20 +40,18 @@
   .tab{display:none}
   .tab.active{display:block;animation:fade .2s ease}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-
   .card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;
     padding:20px;margin-bottom:18px;box-shadow:0 1px 3px rgba(15,23,42,.04)}
   .card h3{font-size:16px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
   .card h3 .dot{width:8px;height:8px;border-radius:50%;background:#0ea5a4}
-
   .field label{display:block;font-size:12.5px;font-weight:600;
     color:#475569;margin-bottom:6px}
-  .field input,.field select{width:100%;padding:10px 12px;
+  .field input,.field select,.field textarea{width:100%;padding:10px 12px;
     border:1.5px solid #e2e8f0;border-radius:10px;font-family:inherit;
     font-size:14px;background:#f8fafc;color:#1e293b;transition:.15s}
-  .field input:focus,.field select:focus{outline:none;border-color:#0ea5a4;
-    background:#fff;box-shadow:0 0 0 3px rgba(14,165,164,.12)}
-
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;
+    border-color:#0ea5a4;background:#fff;
+    box-shadow:0 0 0 3px rgba(14,165,164,.12)}
   .btn{border:0;border-radius:10px;padding:11px 20px;font-family:inherit;
     font-size:14px;font-weight:600;cursor:pointer;transition:.15s;
     display:inline-flex;align-items:center;gap:7px;justify-content:center}
@@ -72,7 +69,6 @@
   .btn-danger{background:#fee2e2;color:#b91c1c}
   .btn-danger:hover{background:#fecaca}
   .btn-sm{padding:7px 12px;font-size:12.5px;border-radius:8px}
-
   .total-box{background:linear-gradient(135deg,#0f766e,#0ea5a4);color:#fff;
     border-radius:14px;padding:24px 28px;margin-bottom:18px;
     display:flex;align-items:center;justify-content:space-between;
@@ -80,7 +76,6 @@
   .total-box .lbl{font-size:14.5px;opacity:.9}
   .total-box .amt{font-size:40px;font-weight:800;letter-spacing:-1px}
   .total-box .amt small{font-size:16px;font-weight:600;opacity:.85}
-
   .week-bar{background:#fff;border:1px solid #e2e8f0;border-radius:14px;
     padding:14px 16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(15,23,42,.04)}
   .week-bar .top-row{display:flex;align-items:center;justify-content:space-between;
@@ -93,7 +88,6 @@
   .week-bar .week-nav button:hover{background:#e2e8f0}
   .week-bar .week-nav .week-range{font-size:12.5px;font-weight:700;
     color:#0f766e;padding:0 6px;min-width:140px;text-align:center}
-
   .day-buttons{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
   @media(max-width:760px){.day-buttons{grid-template-columns:repeat(4,1fr)}}
   @media(max-width:450px){.day-buttons{grid-template-columns:repeat(2,1fr)}}
@@ -112,72 +106,84 @@
   .day-btn.today .day-date{color:#0ea5a4}
   .day-btn.active{background:linear-gradient(135deg,#0ea5a4,#0891b2);
     border-color:transparent;box-shadow:0 6px 16px -6px #0ea5a4}
-  .day-btn.active .day-name,
-  .day-btn.active .day-date{color:#fff}
+  .day-btn.active .day-name,.day-btn.active .day-date{color:#fff}
   .day-btn.active .rep-count{background:rgba(255,255,255,.25);color:#fff}
   .day-btn.friday{opacity:.55;cursor:not-allowed}
   .day-btn.friday:hover{background:#f8fafc;border-color:#e2e8f0}
-
   .rep-box{background:#fff;border:2px solid #e2e8f0;border-radius:14px;
     margin-bottom:14px;overflow:hidden;transition:.2s;position:relative}
   .rep-box.done{border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.08)}
+  .rep-box.type-dagrtn.done{border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.1)}
   .rep-head{display:flex;align-items:center;gap:14px;padding:16px 20px;
     background:#f8fafc;flex-wrap:wrap;border-bottom:1px solid #e2e8f0}
   .rep-box.done .rep-head{background:linear-gradient(90deg,#ecfdf5,#f8fafc)}
+  .rep-box.type-dagrtn.done .rep-head{background:linear-gradient(90deg,#fffbeb,#f8fafc)}
   .avatar{width:48px;height:48px;flex:0 0 48px;border-radius:13px;
     display:grid;place-items:center;background:linear-gradient(135deg,#6366f1,#8b5cf6);
     color:#fff;font-weight:700;font-size:17px}
+  .avatar.type-hatn{background:linear-gradient(135deg,#0ea5a4,#10b981)}
+  .avatar.type-dagrtn{background:linear-gradient(135deg,#f59e0b,#d97706)}
   .rep-head .info{flex:1;min-width:140px}
   .rep-head .info b{font-size:16.5px;display:block}
   .rep-head .info small{color:#64748b;font-size:12.5px}
   .rep-head .rep-total{text-align:left;background:#fff;border-radius:11px;
     padding:8px 16px;border:1.5px solid #e2e8f0}
   .rep-box.done .rep-head .rep-total{background:#d1fae5;border-color:#6ee7b7}
+  .rep-box.type-dagrtn.done .rep-head .rep-total{background:#fef3c7;border-color:#fcd34d}
   .rep-head .rep-total .lbl{font-size:11px;color:#64748b;margin-bottom:3px}
   .rep-head .rep-total .val{font-size:24px;font-weight:800;color:#0f766e;letter-spacing:-.5px}
-
+  .rep-box.type-dagrtn .rep-head .rep-total .val{color:#d97706}
   .rep-remove-btn{background:#fee2e2;border:1.5px solid #fecaca;color:#b91c1c;
     width:40px;height:40px;flex:0 0 40px;border-radius:11px;cursor:pointer;
     display:grid;place-items:center;font-size:18px;font-family:inherit;
     transition:.15s;padding:0}
   .rep-remove-btn:hover{background:#fecaca;transform:scale(1.05)}
   .rep-remove-btn:active{transform:scale(.95)}
-
+  .rep-qr-btn{background:linear-gradient(135deg,#6366f1,#8b5cf6);border:0;color:#fff;
+    width:40px;height:40px;flex:0 0 40px;border-radius:11px;cursor:pointer;
+    display:grid;place-items:center;font-size:18px;font-family:inherit;
+    transition:.15s;padding:0;box-shadow:0 4px 12px -4px #6366f1}
+  .rep-qr-btn:hover{transform:scale(1.08);filter:brightness(1.1)}
+  .rep-qr-btn:active{transform:scale(.95)}
   .rep-body{padding:16px 20px}
-
   .money-form{display:grid;grid-template-columns:1fr auto;
     gap:12px;align-items:end;padding:16px;background:#f0fdfa;
     border:2px dashed #5eead4;border-radius:12px}
-  @media(max-width:600px){.money-form{grid-template-columns:1fr}}
+  .rep-box.type-dagrtn .money-form{background:#fffbeb;border-color:#fcd34d}
   .money-form .mini{font-size:13.5px;color:#0f766e;margin-bottom:6px;
     display:block;font-weight:700}
+  .rep-box.type-dagrtn .money-form .mini{color:#d97706}
   .money-form input{padding:15px 18px;border:2px solid #99f6e4;
     border-radius:11px;font-family:inherit;font-size:20px;background:#fff;
-    width:100%;font-weight:700;color:#0f766e;letter-spacing:.5px;
-    text-align:center}
+    width:100%;font-weight:700;color:#0f766e;letter-spacing:.5px;text-align:center}
+  .rep-box.type-dagrtn .money-form input{border-color:#fcd34d;color:#d97706}
   .money-form input:focus{outline:none;border-color:#0ea5a4;
     box-shadow:0 0 0 4px rgba(14,165,164,.18)}
   .money-form button{padding:15px 26px;font-size:15px;height:auto}
-
   .chip{display:inline-block;padding:3px 10px;border-radius:20px;
     font-size:11.5px;font-weight:700;white-space:nowrap}
   .chip.day{background:#e0f2fe;color:#0369a1}
   .chip.fri{background:#f1f5f9;color:#94a3b8}
-  .chip.on{background:#d1fae5;color:#047857}
-  .chip.off{background:#f1f5f9;color:#94a3b8}
-
+  .chip-hatn{display:inline-flex;align-items:center;gap:4px;
+    background:#d1fae5;color:#047857;padding:4px 11px;
+    border-radius:20px;font-size:11.5px;font-weight:800;white-space:nowrap}
+  .chip-dagrtn{display:inline-flex;align-items:center;gap:4px;
+    background:#fef3c7;color:#b45309;padding:4px 11px;
+    border-radius:20px;font-size:11.5px;font-weight:800;white-space:nowrap}
+  .chip-perm{display:inline-flex;align-items:center;gap:4px;
+    background:#dbeafe;color:#1d4ed8;padding:4px 11px;
+    border-radius:20px;font-size:11.5px;font-weight:800;white-space:nowrap}
+  .chip-temp{display:inline-flex;align-items:center;gap:4px;
+    background:#fce7f3;color:#be185d;padding:4px 11px;
+    border-radius:20px;font-size:11.5px;font-weight:800;white-space:nowrap}
   .chip-mini{display:inline-block;padding:2px 8px;border-radius:20px;
-    font-size:10.5px;font-weight:700;white-space:nowrap;margin:1px;
-    line-height:1.3}
+    font-size:10.5px;font-weight:700;white-space:nowrap;margin:1px;line-height:1.3}
   .chip-mini.on{background:#0ea5a4;color:#fff}
   .chip-mini.off{background:#f1f5f9;color:#cbd5e1}
-
   .empty{text-align:center;padding:34px 16px;color:#64748b;font-size:14px}
   .empty .big{font-size:38px;display:block;margin-bottom:10px;opacity:.35}
-
   .toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:16px}
   .toolbar .field{min-width:180px}
-
   .tbl-wrap{overflow-x:auto;border-radius:11px;border:1px solid #e2e8f0}
   table{width:100%;border-collapse:collapse;font-size:14px;background:#fff}
   thead th{background:#f8fafc;text-align:right;padding:11px 14px;
@@ -188,13 +194,28 @@
   tbody tr:hover{background:#f8fafc}
   .amount-cell{font-size:16px;font-weight:800;color:#0f766e}
   .time-cell{font-size:11.5px;color:#94a3b8}
-
   .reps-table-compact thead th{padding:10px 10px;font-size:11.5px}
   .reps-table-compact tbody td{padding:9px 10px;font-size:13px}
   .reps-table-compact .days-cell{white-space:nowrap;line-height:1.6}
-  .reps-table-compact .actions-cell{width:90px;white-space:nowrap}
-
-  /* ✅ جەدۆلی کۆی هەفتە */
+  .reps-table-compact .actions-cell{width:140px;white-space:nowrap}
+  .type-selector{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+  .type-selector label{display:flex;align-items:center;gap:10px;padding:16px 18px;
+    background:#f8fafc;border:2px solid #e2e8f0;border-radius:12px;
+    cursor:pointer;transition:.15s;font-weight:700;user-select:none;
+    font-size:14.5px;color:#334155}
+  .type-selector label:hover{background:#f1f5f9;border-color:#cbd5e1}
+  .type-selector input{display:none}
+  .type-selector label:has(input:checked){
+    background:linear-gradient(135deg,#ecfdf5,#d1fae5);
+    border-color:#10b981;color:#047857;
+    box-shadow:0 0 0 4px rgba(16,185,129,.15)}
+  .type-selector label[data-type="dagrtn"]:has(input:checked){
+    background:linear-gradient(135deg,#fffbeb,#fef3c7);
+    border-color:#f59e0b;color:#b45309;
+    box-shadow:0 0 0 4px rgba(245,158,11,.15)}
+  .type-selector .ico{font-size:22px;transition:.2s}
+  .type-selector .txt small{display:block;font-size:11.5px;
+    font-weight:500;opacity:.75;margin-top:2px}
   .week-summary{background:#fff;border:1px solid #e2e8f0;border-radius:14px;
     padding:20px;margin-bottom:18px;box-shadow:0 1px 3px rgba(15,23,42,.04)}
   .week-summary h3{font-size:16px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
@@ -204,15 +225,12 @@
   .week-summary-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
   @media(max-width:760px){.week-summary-grid{grid-template-columns:repeat(3,1fr)}}
   @media(max-width:450px){.week-summary-grid{grid-template-columns:repeat(2,1fr)}}
-  
   .ws-item{background:linear-gradient(135deg,#f0fdfa,#fff);
     border:2px solid #a7f3d0;border-radius:12px;padding:14px 8px;
     text-align:center;transition:.15s;cursor:pointer;font-family:inherit;
-    display:block;width:100%;-webkit-tap-highlight-color:transparent;
-    position:relative}
+    display:block;width:100%;-webkit-tap-highlight-color:transparent;position:relative}
   .ws-item:hover{transform:translateY(-3px);
-    box-shadow:0 8px 18px -8px rgba(14,165,164,.35);
-    border-color:#0ea5a4}
+    box-shadow:0 8px 18px -8px rgba(14,165,164,.35);border-color:#0ea5a4}
   .ws-item:active{transform:translateY(-1px) scale(.98)}
   .ws-item .ws-day{font-size:12.5px;font-weight:700;color:#0f766e;
     margin-bottom:6px;display:block}
@@ -223,40 +241,23 @@
   .ws-item .ws-today-tag{font-size:9.5px;color:#fff;background:#0ea5a4;
     padding:1px 6px;border-radius:8px;font-weight:800;
     display:inline-block;margin-top:4px}
-  
-  /* بەتاڵ */
   .ws-item.empty-day{background:#f8fafc;border-color:#e2e8f0}
   .ws-item.empty-day .ws-num{color:#cbd5e1}
   .ws-item.empty-day .ws-day{color:#94a3b8}
   .ws-item.empty-day:hover{border-color:#94a3b8}
-  
-  /* ئەمڕۆ (هەڵنەبژێردراو) */
-  .ws-item.is-today:not(.is-active){
-    border-color:#0ea5a4;
+  .ws-item.is-today:not(.is-active){border-color:#0ea5a4;
     background:linear-gradient(135deg,#ccfbf1,#fff);
     box-shadow:0 0 0 3px rgba(14,165,164,.2)}
-  
-  /* 🎯 هەڵبژێردراو — هەمیشە تۆخ (لە سەرووی هەموو شتێکەوە) */
-  .ws-item.is-active,
-  .ws-item.is-active.is-today,
-  .ws-item.is-active.empty-day{
+  .ws-item.is-active,.ws-item.is-active.is-today,.ws-item.is-active.empty-day{
     background:linear-gradient(135deg,#0f766e,#0d9488) !important;
     border-color:#0f766e !important;
     box-shadow:0 10px 24px -8px rgba(15,118,110,.7) !important;
     transform:translateY(-3px)}
-  .ws-item.is-active .ws-day,
-  .ws-item.is-active .ws-num,
-  .ws-item.is-active .ws-lbl,
-  .ws-item.is-active.is-today .ws-day,
-  .ws-item.is-active.is-today .ws-num,
-  .ws-item.is-active.is-today .ws-lbl,
-  .ws-item.is-active.empty-day .ws-day,
-  .ws-item.is-active.empty-day .ws-num,
-  .ws-item.is-active.empty-day .ws-lbl{color:#fff !important}
+  .ws-item.is-active .ws-day,.ws-item.is-active .ws-num,.ws-item.is-active .ws-lbl,
+  .ws-item.is-active.is-today .ws-day,.ws-item.is-active.is-today .ws-num,
+  .ws-item.is-active.is-today .ws-lbl{color:#fff !important}
   .ws-item.is-active .ws-today-tag,
-  .ws-item.is-active.is-today .ws-today-tag{
-    background:rgba(255,255,255,.3) !important}
-
+  .ws-item.is-active.is-today .ws-today-tag{background:rgba(255,255,255,.3) !important}
   .footer-total{position:fixed;bottom:0;inset-inline-start:230px;
     inset-inline-end:0;background:linear-gradient(135deg,#0f172a,#1e293b);
     color:#fff;padding:14px 28px;box-shadow:0 -10px 30px rgba(15,23,42,.25);
@@ -276,34 +277,29 @@
     pointer-events:none}
   .footer-total .ft-count{font-size:12.5px;color:#94a3b8;font-weight:600;
     text-align:center;min-width:100px}
-  .footer-total .ft-count b{color:#5eead4;font-size:15px;display:block;
-    margin-top:2px}
+  .footer-total .ft-count b{color:#5eead4;font-size:15px;display:block;margin-top:2px}
   .footer-total .ft-print-btn{background:linear-gradient(135deg,#6366f1,#8b5cf6);
     border:0;color:#fff;padding:13px 22px;border-radius:11px;font-family:inherit;
     font-size:14.5px;font-weight:700;cursor:pointer;transition:.15s;
     display:inline-flex;align-items:center;gap:8px;white-space:nowrap;
     box-shadow:0 6px 16px -8px #6366f1}
   .footer-total .ft-print-btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
-
   .personal-header{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;
     border-radius:16px;padding:28px 32px;margin-bottom:20px;
     box-shadow:0 14px 30px -14px rgba(124,58,237,.5)}
   .personal-header h2{font-size:26px;font-weight:800;margin-bottom:6px}
   .personal-header p{font-size:14px;opacity:.9}
-
   .personal-form{background:#fff;border:2px solid #e2e8f0;border-radius:16px;
     padding:22px;margin-bottom:18px;box-shadow:0 1px 3px rgba(15,23,42,.04)}
   .personal-form .form-title{font-size:16px;font-weight:700;color:#7c3aed;
     margin-bottom:16px;display:flex;align-items:center;gap:8px}
-  .personal-form .form-title .dot{width:8px;height:8px;border-radius:50%;
-    background:#7c3aed}
+  .personal-form .form-title .dot{width:8px;height:8px;border-radius:50%;background:#7c3aed}
   .personal-input-row{display:grid;grid-template-columns:1fr auto;
     gap:12px;align-items:end}
   @media(max-width:600px){.personal-input-row{grid-template-columns:1fr}}
   .personal-input-row input{padding:16px 20px;border:2px solid #ddd6fe;
     border-radius:12px;font-family:inherit;font-size:22px;font-weight:700;
-    background:#faf5ff;color:#7c3aed;letter-spacing:.5px;text-align:center;
-    width:100%}
+    background:#faf5ff;color:#7c3aed;letter-spacing:.5px;text-align:center;width:100%}
   .personal-input-row input:focus{outline:none;border-color:#a855f7;
     background:#fff;box-shadow:0 0 0 4px rgba(168,85,247,.15)}
   .personal-input-row button{padding:16px 28px;font-size:15px;height:auto;
@@ -313,7 +309,6 @@
   .personal-input-row button:hover{filter:brightness(1.1);transform:translateY(-1px)}
   .personal-input-row .mini{font-size:13px;color:#7c3aed;margin-bottom:6px;
     display:block;font-weight:700}
-
   .personal-total-box{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;
     border-radius:16px;padding:24px 28px;margin-bottom:18px;
     display:flex;align-items:center;justify-content:space-between;
@@ -321,7 +316,6 @@
   .personal-total-box .lbl{font-size:15px;opacity:.95;font-weight:700}
   .personal-total-box .amt{font-size:42px;font-weight:900;letter-spacing:-1px}
   .personal-total-box .amt small{font-size:16px;font-weight:600;opacity:.85}
-
   .calc-box{background:#fff;border:2px solid #fed7aa;border-radius:16px;
     padding:22px;margin-bottom:18px;box-shadow:0 4px 12px -4px rgba(245,158,11,.15)}
   .calc-box .calc-title{font-size:16px;font-weight:800;color:#d97706;
@@ -336,7 +330,6 @@
   .calc-inputs input:focus{outline:none;border-color:#f59e0b;background:#fff;
     box-shadow:0 0 0 4px rgba(245,158,11,.15)}
   .calc-inputs input[readonly]{background:#fef3c7;cursor:not-allowed}
-
   .result-box{margin-top:16px;padding:22px;border-radius:14px;
     text-align:center;transition:.3s;border:3px dashed}
   .result-box .result-lbl{font-size:14px;font-weight:700;margin-bottom:8px}
@@ -350,9 +343,7 @@
   .result-box.negative .result-lbl{color:#b91c1c}
   .result-box.neutral{background:#f8fafc;border-color:#cbd5e1;color:#475569}
   .result-box.neutral .result-lbl{color:#64748b}
-
   .calc-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
-
   .toast{position:fixed;bottom:120px;inset-inline-start:24px;background:#111827;
     color:#fff;padding:13px 20px;border-radius:11px;font-size:14px;z-index:99;
     opacity:0;transform:translateY(14px);transition:.28s;pointer-events:none;
@@ -360,6 +351,62 @@
   .toast.show{opacity:1;transform:none}
   .toast.ok{background:#047857}
   .toast.err{background:#b91c1c}
+
+  /* ===== QR MODAL ===== */
+  .qr-modal{position:fixed;inset:0;background:rgba(15,23,42,.8);
+    z-index:9999;display:none;align-items:center;justify-content:center;
+    padding:16px;backdrop-filter:blur(6px)}
+  .qr-modal.show{display:flex;animation:fadeIn .2s ease}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .qr-modal-content{background:#fff;border-radius:22px;padding:24px 22px;
+    max-width:400px;width:100%;position:relative;
+    box-shadow:0 25px 60px rgba(0,0,0,.5);animation:slideUp .3s ease}
+  @keyframes slideUp{from{opacity:0;transform:translateY(30px) scale(.9)}
+    to{opacity:1;transform:none}}
+  .qr-modal-close{position:absolute;top:12px;inset-inline-start:12px;
+    width:38px;height:38px;border-radius:11px;border:0;background:#f1f5f9;
+    color:#64748b;font-size:18px;font-weight:800;cursor:pointer;
+    display:grid;place-items:center;transition:.15s;font-family:inherit}
+  .qr-modal-close:hover{background:#fee2e2;color:#b91c1c;transform:rotate(90deg)}
+  .qr-modal-header{text-align:center;margin-bottom:16px;padding-bottom:16px;
+    border-bottom:2px dashed #e2e8f0}
+  .qr-modal-header .avatar-big{width:60px;height:60px;border-radius:16px;
+    display:inline-grid;place-items:center;font-weight:800;font-size:22px;
+    color:#fff;margin-bottom:10px;
+    background:linear-gradient(135deg,#6366f1,#8b5cf6)}
+  .qr-modal-header .avatar-big.type-hatn{
+    background:linear-gradient(135deg,#0ea5a4,#10b981)}
+  .qr-modal-header .avatar-big.type-dagrtn{
+    background:linear-gradient(135deg,#f59e0b,#d97706)}
+  .qr-modal-header h3{font-size:19px;font-weight:800;margin-bottom:4px}
+  .qr-modal-header .sub{font-size:13px;color:#64748b}
+  .qr-modal-header .chips{display:flex;gap:6px;justify-content:center;
+    flex-wrap:wrap;margin-top:10px}
+  .qr-canvas-wrap{background:#fff;border:3px solid #0ea5a4;border-radius:16px;
+    padding:14px;display:flex;align-items:center;justify-content:center;
+    margin-bottom:14px;min-height:220px}
+  .qr-canvas-wrap svg,.qr-canvas-wrap canvas,.qr-canvas-wrap img{
+    display:block;width:100% !important;height:auto !important;max-width:260px}
+  .qr-info-list{display:flex;flex-direction:column;gap:8px;
+    background:#f8fafc;border-radius:12px;padding:14px;margin-bottom:16px}
+  .qr-info-item{display:flex;justify-content:space-between;gap:10px;
+    font-size:13.5px;padding:4px 0;border-bottom:1px dashed #e2e8f0}
+  .qr-info-item:last-child{border-bottom:0}
+  .qr-info-item .lbl{color:#64748b;font-weight:600}
+  .qr-info-item .val{color:#0f172a;font-weight:700;text-align:left;
+    direction:ltr;font-family:'Courier New',monospace;font-size:12.5px;
+    max-width:60%;word-break:break-all;text-align:right}
+  .qr-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .qr-actions button{padding:13px;border:0;border-radius:12px;
+    font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;
+    transition:.15s;display:flex;align-items:center;justify-content:center;
+    gap:7px}
+  .qr-actions .btn-dl{background:linear-gradient(135deg,#0ea5a4,#0891b2);
+    color:#fff;box-shadow:0 6px 16px -8px #0ea5a4}
+  .qr-actions .btn-dl:hover{transform:translateY(-2px);filter:brightness(1.08)}
+  .qr-actions .btn-print2{background:linear-gradient(135deg,#6366f1,#8b5cf6);
+    color:#fff;box-shadow:0 6px 16px -8px #6366f1}
+  .qr-actions .btn-print2:hover{transform:translateY(-2px);filter:brightness(1.08)}
 
   @media(max-width:760px){
     .app{flex-direction:column}
@@ -377,7 +424,6 @@
 <body>
 
 <div class="app">
-
   <aside class="sidebar">
     <div class="brand">
       <div class="logo">🏪</div>
@@ -395,18 +441,14 @@
   </aside>
 
   <main>
-
     <section class="tab active" id="tab-today">
       <div class="page-head">
         <div>
           <h2 id="todayTitle">📅 حسابی ڕۆژانە</h2>
           <p id="todaySub">—</p>
         </div>
-        <button class="btn btn-print" data-action="printReport">
-          🖨️ چاپکردنی ڕاپۆرت (A4)
-        </button>
+        <button class="btn btn-print" data-action="printReport">🖨️ چاپکردنی ڕاپۆرت (A4)</button>
       </div>
-
       <div class="week-bar">
         <div class="top-row">
           <div class="title">🗓️ ڕۆژەکانی هەفتە — کلیک بکە بۆ بینینی مەندوبانی ئەو ڕۆژە</div>
@@ -418,7 +460,6 @@
         </div>
         <div class="day-buttons" id="dayButtons"></div>
       </div>
-
       <div id="dayReps"></div>
     </section>
 
@@ -444,12 +485,50 @@
               <input type="text" id="repCompany" placeholder="ناوی شەریکە">
             </div>
             <div class="field">
-              <label>ژمارەی تەلەفون</label>
+              <label>ژمارەی تەلەفۆن</label>
               <input type="text" id="repPhone" placeholder="07XX XXX XXXX" dir="ltr">
             </div>
           </div>
 
-          <div class="field" style="margin-bottom:16px">
+          <div class="field" style="margin-bottom:14px">
+            <label>🎯 جۆری مەندوب *</label>
+            <div class="type-selector">
+              <label data-type="hatn">
+                <input type="radio" name="repType" value="hatn" checked>
+                <span class="ico">🚚</span>
+                <span class="txt">هاتن<small>کاڵا دەهێنێت</small></span>
+              </label>
+              <label data-type="dagrtn">
+                <input type="radio" name="repType" value="dagrtn">
+                <span class="ico">📥</span>
+                <span class="txt">داگرتن<small>کاڵا وەردەگرێت</small></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="field" style="margin-bottom:14px">
+            <label>📆 جۆری تۆمار *</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <label style="display:flex;align-items:center;gap:9px;padding:12px 14px;
+                background:#f8fafc;border:2px solid #e2e8f0;border-radius:11px;
+                cursor:pointer;font-weight:700;font-size:13.5px;color:#334155;
+                user-select:none;transition:.15s">
+                <input type="radio" name="repMode" value="perm" checked
+                  style="accent-color:#0ea5a4;width:18px;height:18px">
+                🔄 هەمیشەیی (هەموو هەفتەیەک)
+              </label>
+              <label style="display:flex;align-items:center;gap:9px;padding:12px 14px;
+                background:#f8fafc;border:2px solid #e2e8f0;border-radius:11px;
+                cursor:pointer;font-weight:700;font-size:13.5px;color:#334155;
+                user-select:none;transition:.15s">
+                <input type="radio" name="repMode" value="temp"
+                  style="accent-color:#f59e0b;width:18px;height:18px">
+                ⚡ تەنها ئەم جارە
+              </label>
+            </div>
+          </div>
+
+          <div class="field" id="daysField" style="margin-bottom:16px">
             <label>ڕۆژەکانی هاتن بۆ دوکان (هەینی داخراوە)</label>
             <div id="daysPick" style="display:flex;flex-wrap:wrap;gap:8px"></div>
           </div>
@@ -475,8 +554,9 @@
               <tr>
                 <th>ناوی مەندوب</th>
                 <th>کۆمپانیا</th>
-                <th>تەلەفۆن</th>
-                <th>ڕۆژەکانی هاتن</th>
+                <th>جۆر</th>
+                <th>تۆمار</th>
+                <th>ڕۆژەکان</th>
                 <th class="actions-cell">کردارەکان</th>
               </tr>
             </thead>
@@ -496,10 +576,9 @@
       <div class="page-head">
         <div>
           <h2>📊 مێژووی ڕۆژانە</h2>
-          <p>هەر ڕۆژ حسابی تایبەت بە خۆی — هیچ تێکەڵکردن نییە</p>
+          <p>هەر ڕۆژ حسابی تایبەت بە خۆی</p>
         </div>
       </div>
-
       <div class="card">
         <h3><span class="dot"></span> کۆی خەرجی هەموو ڕۆژەکان</h3>
         <div class="tbl-wrap">
@@ -522,20 +601,14 @@
     <section class="tab" id="tab-personal">
       <div class="personal-header">
         <h2>💼 حسابی کەسی</h2>
-        <p>تەنها بۆ خۆت — بڕی ئەو پارەیەی خۆت سەرفی دەکەیت</p>
+        <p>تەنها بۆ خۆت</p>
       </div>
-
       <div class="personal-total-box">
-        <div>
-          <div class="lbl">💰 کۆی گشتی خەرجییەکانم</div>
-        </div>
+        <div><div class="lbl">💰 کۆی گشتی خەرجییەکانم</div></div>
         <div class="amt" id="personalTotal">0 <small>د.ع</small></div>
       </div>
-
       <div class="personal-form">
-        <div class="form-title">
-          <span class="dot"></span> زیادکردنی خەرجی نوێ
-        </div>
+        <div class="form-title"><span class="dot"></span> زیادکردنی خەرجی نوێ</div>
         <form id="personalForm">
           <div class="personal-input-row">
             <div>
@@ -550,7 +623,6 @@
           </div>
         </form>
       </div>
-
       <div class="card">
         <h3><span class="dot"></span> لیستی خەرجییەکانم</h3>
         <div class="tbl-wrap">
@@ -567,64 +639,64 @@
           </table>
         </div>
       </div>
-
       <div class="calc-box">
-        <div class="calc-title">
-          <span class="ico">🧮</span> حسابی پارەی ماوە
-        </div>
+        <div class="calc-title"><span class="ico">🧮</span> حسابی پارەی ماوە</div>
         <div class="calc-inputs">
           <div class="field">
             <label>💰 کۆی گشتی خەرجییەکان</label>
             <input type="text" id="calcTotal" readonly value="0">
           </div>
           <div class="field">
-            <label>💸 بڕی لێدەرکرد (ئەوەی دەری دەکەیت)</label>
+            <label>💸 بڕی لێدەرکرد</label>
             <input type="number" id="calcWithdraw" min="0" step="any"
               placeholder="بۆ نموونە: 20000" autocomplete="off">
           </div>
         </div>
-
         <div class="calc-actions">
-          <button class="btn btn-calc" data-action="calculateResult" style="flex:1">
-            🧮 ئەنجام — پارەی ماوە
-          </button>
-          <button class="btn btn-ghost" data-action="resetCalc">
-            🔄 پاککردنەوە
-          </button>
+          <button class="btn btn-calc" data-action="calculateResult" style="flex:1">🧮 ئەنجام</button>
+          <button class="btn btn-ghost" data-action="resetCalc">🔄 پاککردنەوە</button>
         </div>
-
         <div class="result-box neutral" id="resultBox">
           <div class="result-lbl">💡 ئەنجام لێرە دەردەکەوێت</div>
           <div class="result-amt">0 <small>د.ع</small></div>
         </div>
       </div>
     </section>
-
   </main>
 </div>
 
 <div class="footer-total" id="footerTotal" style="display:none">
-  <div class="ft-label">
-    <span class="ft-icon">💰</span>
-    <span>کۆی گشتی ئەم ڕۆژە:</span>
-  </div>
+  <div class="ft-label"><span class="ft-icon">💰</span><span>کۆی گشتی ئەم ڕۆژە:</span></div>
   <div class="ft-input-wrap">
     <input type="text" id="footerTotalInput" readonly value="0">
     <span class="ft-cur">د.ع</span>
   </div>
-  <div class="ft-count">
-    مەندوب
-    <b id="footerRepCount">0</b>
+  <div class="ft-count">مەندوب<b id="footerRepCount">0</b></div>
+  <button class="ft-print-btn" data-action="printReport">🖨️ چاپکردن</button>
+</div>
+
+<!-- QR MODAL -->
+<div class="qr-modal" id="qrModal">
+  <div class="qr-modal-content">
+    <button class="qr-modal-close" data-action="closeQR">✕</button>
+    <div class="qr-modal-header">
+      <div class="avatar-big" id="qrAvatar">؟</div>
+      <h3 id="qrName">—</h3>
+      <div class="sub" id="qrCompany">—</div>
+      <div class="chips" id="qrChips"></div>
+    </div>
+    <div class="qr-canvas-wrap" id="qrCanvasWrap"></div>
+    <div class="qr-info-list" id="qrInfoList"></div>
+    <div class="qr-actions">
+      <button class="btn-dl" data-action="downloadQR">⬇️ داگرتنی QR</button>
+      <button class="btn-print2" data-action="printQR">🖨️ چاپکردن</button>
+    </div>
   </div>
-  <button class="ft-print-btn" data-action="printReport">
-    🖨️ چاپکردن
-  </button>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-/* ================= ڕێکخستن ================= */
 const DAYS = [
   {k:'sat', n:'شەممە',     js:6},
   {k:'sun', n:'یەکشەممە',  js:0},
@@ -635,17 +707,11 @@ const DAYS = [
   {k:'fri', n:'هەینی',     js:5, off:true}
 ];
 const WORK_DAYS = DAYS.filter(d => !d.off);
-const KEY = 'mandub_week_v8';
+const KEY = 'mandub_week_v10';
 
-/* ================= داتا ================= */
 let state = { reps: [], records: {}, personal: [], hiddenOnDay: {} };
-const ui = {
-  date: todayStr(),
-  weekStart: getWeekStart(todayStr()),
-  search: ''
-};
+const ui = { date: todayStr(), weekStart: getWeekStart(todayStr()), search: '', qrRepId: null };
 
-/* ================= یاریدەدەر ================= */
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function pad(n){ return String(n).padStart(2,'0'); }
 function todayStr(){ const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
@@ -657,53 +723,35 @@ function nowTime(){ const d = new Date(); return `${pad(d.getHours())}:${pad(d.g
 function fmt(n){ return (Number(n)||0).toLocaleString('en-US'); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function initials(name){ const p = String(name||'?').trim().split(/\s+/); return p.length>1 ? p[0][0]+p[1][0] : p[0].slice(0,2); }
+function getWeekStart(ds){ const d = parseDate(ds); const jd = d.getDay(); let diff;
+  if(jd === 6) diff = 0; else if(jd === 0) diff = -1; else diff = -(jd + 1);
+  const s = new Date(d); s.setDate(d.getDate() + diff); return dateStr(s); }
+function addDays(ds, n){ const d = parseDate(ds); d.setDate(d.getDate() + n); return dateStr(d); }
 
-function getWeekStart(ds){
-  const d = parseDate(ds);
-  const jsDay = d.getDay();
-  let diff;
-  if(jsDay === 6) diff = 0;
-  else if(jsDay === 0) diff = -1;
-  else diff = -(jsDay + 1);
-  const start = new Date(d);
-  start.setDate(d.getDate() + diff);
-  return dateStr(start);
-}
-function addDays(ds, n){
-  const d = parseDate(ds);
-  d.setDate(d.getDate() + n);
-  return dateStr(d);
-}
-
-function isHiddenOnDay(repId, date){
-  return (state.hiddenOnDay[date] || []).includes(repId);
-}
+function isHiddenOnDay(repId, date){ return (state.hiddenOnDay[date] || []).includes(repId); }
 function hideRepOnDay(repId, date){
   if(!state.hiddenOnDay[date]) state.hiddenOnDay[date] = [];
-  if(!state.hiddenOnDay[date].includes(repId)){
-    state.hiddenOnDay[date].push(repId);
-  }
+  if(!state.hiddenOnDay[date].includes(repId)) state.hiddenOnDay[date].push(repId);
   if(state.records[date] && state.records[date][repId]){
     delete state.records[date][repId];
     if(!Object.keys(state.records[date]).length) delete state.records[date];
   }
   save();
 }
-
-function getAmount(repId, date){
-  return (state.records[date] && state.records[date][repId]) || 0;
+function repShowsOnDate(rep, date){
+  if(isHiddenOnDay(rep.id, date)) return false;
+  if(rep.mode === 'temp') return (rep.oneTimeDate === date);
+  return rep.days.includes(dayKey(date));
 }
+function getAmount(repId, date){ return (state.records[date] && state.records[date][repId]) || 0; }
 function setAmount(repId, date, amount){
   if(!state.records[date]) state.records[date] = {};
   if(!amount || amount <= 0){
     delete state.records[date][repId];
     if(!Object.keys(state.records[date]).length) delete state.records[date];
-  } else {
-    state.records[date][repId] = Number(amount);
-  }
+  } else { state.records[date][repId] = Number(amount); }
   save();
 }
-
 function dayTotal(date){
   const day = state.records[date] || {};
   let total = 0, reps = 0;
@@ -713,36 +761,24 @@ function dayTotal(date){
   });
   return { total, reps };
 }
-
-function personalTotal(){
-  return state.personal.reduce((s, r) => s + (Number(r.amount)||0), 0);
-}
-
+function personalTotal(){ return state.personal.reduce((s, r) => s + (Number(r.amount)||0), 0); }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
 function load(){
   try{
     const r = localStorage.getItem(KEY);
-    if(r){
-      const p = JSON.parse(r);
-      state = {
-        reps: p.reps||[],
-        records: p.records||{},
-        personal: p.personal||[],
-        hiddenOnDay: p.hiddenOnDay||{}
-      };
-    }
+    if(r){ const p = JSON.parse(r); state = {
+      reps: p.reps||[], records: p.records||{}, personal: p.personal||[], hiddenOnDay: p.hiddenOnDay||{}
+    }; }
   }catch(e){ state = { reps: [], records: {}, personal: [], hiddenOnDay: {} }; }
 }
-
 function toast(msg, type){
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.className = 'toast show ' + (type || '');
   clearTimeout(t._tm);
-  t._tm = setTimeout(() => { t.className = 'toast ' + (type||''); }, 2200);
+  t._tm = setTimeout(() => { t.className = 'toast ' + (type||''); }, 2400);
 }
 
-/* ================= تاب ================= */
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
@@ -760,69 +796,52 @@ function switchTab(name){
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
-/* ================= دوگمەکانی ڕۆژەکانی هەفتە ================= */
 function renderDayButtons(){
   const wrap = document.getElementById('dayButtons');
   const today = todayStr();
-
   const weekDays = [
-    {k:'sat', n:'شەممە',     offset:0},
-    {k:'sun', n:'یەکشەممە',  offset:1},
-    {k:'mon', n:'دووشەممە',  offset:2},
-    {k:'tue', n:'سێشەممە',   offset:3},
-    {k:'wed', n:'چوارشەممە', offset:4},
-    {k:'thu', n:'پێنجشەممە', offset:5},
-    {k:'fri', n:'هەینی',     offset:6, off:true}
+    {k:'sat', n:'شەممە', offset:0},{k:'sun', n:'یەکشەممە', offset:1},
+    {k:'mon', n:'دووشەممە', offset:2},{k:'tue', n:'سێشەممە', offset:3},
+    {k:'wed', n:'چوارشەممە', offset:4},{k:'thu', n:'پێنجشەممە', offset:5},
+    {k:'fri', n:'هەینی', offset:6, off:true}
   ];
-
   wrap.innerHTML = weekDays.map(d => {
     const dateOfDay = addDays(ui.weekStart, d.offset);
     const count = state.reps.filter(r =>
-      r.days.includes(d.k) && !isHiddenOnDay(r.id, dateOfDay)
+      r.mode === 'perm' ? r.days.includes(d.k) : false
     ).length;
     const isToday = dateOfDay === today;
     const isActive = dateOfDay === ui.date;
     const dd = parseDate(dateOfDay);
     const dateLabel = `${dd.getDate()}/${dd.getMonth()+1}`;
     return `<button class="day-btn ${isActive?'active':''} ${isToday?'today':''} ${d.off?'friday':''}"
-      data-action="pickDay" data-day="${d.k}" data-date="${dateOfDay}"
-      ${d.off?'disabled':''}>
+      data-action="pickDay" data-day="${d.k}" data-date="${dateOfDay}" ${d.off?'disabled':''}>
       <span class="day-name">${d.n}</span>
       <span class="day-date">${dateLabel}${isToday?' • ئەمڕۆ':''}</span>
       ${!d.off && count ? `<div><span class="rep-count">${count} مەندوب</span></div>` : ''}
     </button>`;
   }).join('');
-
   const start = parseDate(ui.weekStart);
   const end = parseDate(addDays(ui.weekStart, 6));
   document.getElementById('weekRange').textContent =
     `${start.getDate()}/${start.getMonth()+1} — ${end.getDate()}/${end.getMonth()+1}`;
 }
 
-/* ================= تابای ئەمڕۆ ================= */
 function renderDay(){
-  const date = ui.date;
-  const dk = dayKey(date);
-  const dn = dayName(date);
+  const date = ui.date, dn = dayName(date);
   const isToday = date === todayStr();
-
   document.getElementById('todayTitle').textContent = isToday
-    ? `📅 حسابی ئەمڕۆ — ${dn}`
-    : `📅 ${dn}`;
+    ? `📅 حسابی ئەمڕۆ — ${dn}` : `📅 ${dn}`;
   document.getElementById('todaySub').textContent =
     `${dn} — ${date}${isToday?' (ئەمڕۆ)':''}`;
-
   renderDayButtons();
   updateFooterTotal(date);
 
-  const scheduled = state.reps.filter(r =>
-    r.days.includes(dk) && !isHiddenOnDay(r.id, date)
-  );
+  const scheduled = state.reps.filter(r => repShowsOnDate(r, date));
   const withAmt = state.reps.filter(r => getAmount(r.id, date) > 0);
   const list = [...new Map([...scheduled, ...withAmt].map(r => [r.id, r])).values()];
 
   const wrap = document.getElementById('dayReps');
-
   if(!state.reps.length){
     wrap.innerHTML = `<div class="card"><div class="empty"><span class="big">👥</span>
       سەرەتا مەندوب زیاد بکە لە تابای «مەندوبەکان».</div></div>`;
@@ -837,26 +856,32 @@ function renderDay(){
   wrap.innerHTML = list.map(r => {
     const amount = getAmount(r.id, date);
     const hasAmount = amount > 0;
-    const isScheduled = r.days.includes(dk);
+    const type = r.type || 'hatn';
+    const mode = r.mode || 'perm';
+    const typeLabel = type === 'hatn' ? 'هاتن' : 'داگرتن';
+    const typeIcon = type === 'hatn' ? '🚚' : '📥';
+    const modeLabel = mode === 'perm' ? '🔄 هەمیشەیی' : '⚡ ئەم جارە';
 
     return `
-      <div class="rep-box ${hasAmount ? 'done' : ''}">
+      <div class="rep-box ${hasAmount ? 'done' : ''} type-${type}">
         <div class="rep-head">
-          <div class="avatar">${esc(initials(r.name))}</div>
+          <div class="avatar type-${type}">${esc(initials(r.name))}</div>
           <div class="info">
             <b>${esc(r.name)}</b>
             <small>${esc(r.company) || 'بێ کۆمپانیا'} ${r.phone ? ' • ' + esc(r.phone) : ''}</small>
+            <div style="margin-top:7px;display:flex;gap:6px;flex-wrap:wrap">
+              <span class="chip-${type}">${typeIcon} ${typeLabel}</span>
+              <span class="chip-${mode === 'perm' ? 'perm' : 'temp'}">${modeLabel}</span>
+            </div>
           </div>
-          ${isScheduled ? '<span class="chip on">ڕۆژی هاتنی</span>' : '<span class="chip off">زیادکراو بە دەست</span>'}
           <div class="rep-total">
             <div class="lbl">کۆی ئەم ${dn}</div>
             <div class="val">${fmt(amount)} <span style="font-size:12px;color:#64748b">د.ع</span></div>
           </div>
+          <button class="rep-qr-btn" data-action="showQR" data-id="${r.id}" title="پیشاندانی QR">📱</button>
           <button class="rep-remove-btn" data-action="removeFromDay"
-            data-rep="${r.id}" data-date="${date}"
-            title="سڕینەوە لەم ڕۆژە تەنها">🗑️</button>
+            data-rep="${r.id}" data-date="${date}" title="سڕینەوە لەم ڕۆژە">🗑️</button>
         </div>
-
         <div class="rep-body">
           <form class="money-form" data-rep="${r.id}" data-date="${date}">
             <div>
@@ -880,181 +905,372 @@ function updateFooterTotal(date){
   document.getElementById('footerRepCount').textContent = fmt(t.reps);
 }
 
-/* تۆمارکردنی پارە */
 document.addEventListener('submit', e => {
   const f = e.target.closest('.money-form');
   if(!f) return;
   e.preventDefault();
-
-  const repId = f.dataset.rep;
-  const date = f.dataset.date;
+  const repId = f.dataset.rep, date = f.dataset.date;
   const fd = new FormData(f);
   const amount = Number(fd.get('amount')) || 0;
-
   if(amount < 0){ toast('بڕی پارە نادروستە', 'err'); return; }
-
   setAmount(repId, date, amount);
   toast(amount > 0 ? 'تۆمارکرا ✅' : 'سڕایەوە', 'ok');
   renderDay();
 });
 
-/* ================= ڕاپۆرتی چاپکردن ================= */
-function printReport(){
-  const date = ui.date;
-  const dn = dayName(date);
-  const dk = dayKey(date);
-  const t = dayTotal(date);
+/* ===== QR FUNCTIONS ===== */
+function showQRModal(repId){
+  const r = state.reps.find(x => x.id === repId);
+  if(!r) return;
+  ui.qrRepId = repId;
 
-  const scheduled = state.reps.filter(r =>
-    r.days.includes(dk) && !isHiddenOnDay(r.id, date)
-  );
+  // Build QR content
+  const qrData = JSON.stringify({
+    id: r.id,
+    n: r.name,
+    c: r.company || '',
+    p: r.phone || '',
+    t: r.type || 'hatn',
+    m: r.mode || 'perm'
+  });
+
+  // Avatar
+  const av = document.getElementById('qrAvatar');
+  av.textContent = initials(r.name);
+  av.className = 'avatar-big type-' + (r.type || 'hatn');
+
+  // Name
+  document.getElementById('qrName').textContent = r.name;
+  document.getElementById('qrCompany').textContent = r.company || 'بێ کۆمپانیا';
+
+  // Chips
+  const type = r.type || 'hatn';
+  const mode = r.mode || 'perm';
+  const typeLabel = type === 'hatn' ? '🚚 هاتن' : '📥 داگرتن';
+  const modeLabel = mode === 'perm' ? '🔄 هەمیشەیی' : '⚡ ئەم جارە';
+  document.getElementById('qrChips').innerHTML = `
+    <span class="chip-${type}">${typeLabel}</span>
+    <span class="chip-${mode === 'perm' ? 'perm' : 'temp'}">${modeLabel}</span>
+  `;
+
+  // Generate QR
+  const wrap = document.getElementById('qrCanvasWrap');
+  wrap.innerHTML = '';
+  try{
+    const qr = qrcode(0, 'M');
+    qr.addData(qrData);
+    qr.make();
+    wrap.innerHTML = qr.createSvgTag({ cellSize: 5, margin: 2,
+      scalable: true });
+    const svg = wrap.querySelector('svg');
+    if(svg){
+      svg.setAttribute('width', '100%');
+      svg.setAttribute('height', 'auto');
+      svg.style.maxWidth = '260px';
+      svg.style.width = '100%';
+    }
+  }catch(err){
+    wrap.innerHTML = `<div style="color:#b91c1c;padding:20px;text-align:center;font-size:13px">
+      کێشەیەک لە دروستکردنی QR هەیە</div>`;
+  }
+
+  // Info list
+  let daysText = '—';
+  if(mode === 'perm' && r.days && r.days.length){
+    daysText = r.days.map(k => DAYS.find(d => d.k === k).n).join('، ');
+  } else if(mode === 'temp' && r.oneTimeDate){
+    daysText = r.oneTimeDate;
+  }
+
+  document.getElementById('qrInfoList').innerHTML = `
+    <div class="qr-info-item">
+      <span class="lbl">🆔 کۆدی ناسین</span>
+      <span class="val">${esc(r.id)}</span>
+    </div>
+    <div class="qr-info-item">
+      <span class="lbl">📞 تەلەفۆن</span>
+      <span class="val">${esc(r.phone) || '—'}</span>
+    </div>
+    <div class="qr-info-item">
+      <span class="lbl">🏢 کۆمپانیا</span>
+      <span class="val">${esc(r.company) || '—'}</span>
+    </div>
+    <div class="qr-info-item">
+      <span class="lbl">📅 ڕۆژەکان</span>
+      <span class="val" style="font-family:inherit;font-size:13px;direction:rtl">${esc(daysText)}</span>
+    </div>
+  `;
+
+  document.getElementById('qrModal').classList.add('show');
+}
+
+function closeQRModal(){
+  document.getElementById('qrModal').classList.remove('show');
+  ui.qrRepId = null;
+}
+
+function downloadQR(){
+  const r = state.reps.find(x => x.id === ui.qrRepId);
+  if(!r) return;
+  const wrap = document.getElementById('qrCanvasWrap');
+  const svg = wrap.querySelector('svg');
+  if(!svg){ toast('QR بەردەست نییە', 'err'); return; }
+
+  // SVG → PNG
+  const svgData = new XMLSerializer().serializeToString(svg);
+  const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+  const svgUrl = URL.createObjectURL(svgBlob);
+
+  const img = new Image();
+  img.onload = function(){
+    const canvas = document.createElement('canvas');
+    canvas.width = 600;
+    canvas.height = 700;
+    const ctx = canvas.getContext('2d');
+
+    // White background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Border
+    ctx.strokeStyle = '#0ea5a4';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(3, 3, canvas.width - 6, canvas.height - 6);
+
+    // QR image
+    ctx.drawImage(img, 100, 40, 400, 400);
+
+    // Name
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 26px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(r.name, canvas.width/2, 490);
+
+    // Company
+    if(r.company){
+      ctx.fillStyle = '#64748b';
+      ctx.font = '18px Arial';
+      ctx.fillText(r.company, canvas.width/2, 525);
+    }
+
+    // Phone
+    if(r.phone){
+      ctx.fillStyle = '#0ea5a4';
+      ctx.font = 'bold 20px Arial';
+      ctx.fillText(r.phone, canvas.width/2, 560);
+    }
+
+    // Type
+    ctx.fillStyle = (r.type === 'dagrtn') ? '#d97706' : '#0f766e';
+    ctx.font = 'bold 18px Arial';
+    ctx.fillText(r.type === 'dagrtn' ? '📥 داگرتن' : '🚚 هاتن', canvas.width/2, 600);
+
+    // Download
+    canvas.toBlob(function(blob){
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `QR-${r.name.replace(/\s+/g, '-')}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(svgUrl);
+      toast('QR داگرت ✅', 'ok');
+    }, 'image/png');
+  };
+  img.onerror = function(){
+    toast('کێشە لە داگرتن', 'err');
+    URL.revokeObjectURL(svgUrl);
+  };
+  img.src = svgUrl;
+}
+
+function printQR(){
+  const r = state.reps.find(x => x.id === ui.qrRepId);
+  if(!r) return;
+  const wrap = document.getElementById('qrCanvasWrap');
+  const svg = wrap.querySelector('svg');
+  if(!svg){ toast('QR بەردەست نییە', 'err'); return; }
+
+  let daysText = '—';
+  const mode = r.mode || 'perm';
+  if(mode === 'perm' && r.days && r.days.length){
+    daysText = r.days.map(k => DAYS.find(d => d.k === k).n).join('، ');
+  } else if(mode === 'temp' && r.oneTimeDate){
+    daysText = r.oneTimeDate;
+  }
+
+  const svgData = new XMLSerializer().serializeToString(svg);
+  const typeLabel = r.type === 'dagrtn' ? 'داگرتن' : 'هاتن';
+  const modeLabel = mode === 'perm' ? 'هەمیشەیی' : 'تەنها ئەم جارە';
+
+  const html = `<!DOCTYPE html><html lang="ku" dir="rtl"><head>
+<meta charset="UTF-8"><title>QR — ${esc(r.name)}</title>
+<style>
+  @page{size:A4;margin:15mm}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Tahoma,'Noto Naskh Arabic',Arial,sans-serif;
+    background:#fff;padding:20px;display:flex;justify-content:center}
+  .card{width:100%;max-width:500px;border:4px solid #0ea5a4;
+    border-radius:24px;padding:30px;text-align:center;background:#fff}
+  .logo{font-size:44px;margin-bottom:8px}
+  h1{font-size:20px;color:#0f766e;font-weight:800;margin-bottom:6px}
+  .subtitle{font-size:13px;color:#64748b;margin-bottom:20px;
+    padding-bottom:16px;border-bottom:2px dashed #e2e8f0}
+  .qr-wrap{background:#fff;padding:14px;border-radius:16px;
+    display:inline-block;margin-bottom:16px}
+  .qr-wrap svg{width:280px;height:280px;display:block}
+  h2{font-size:24px;font-weight:800;color:#0f172a;margin-bottom:6px}
+  .company{font-size:15px;color:#64748b;margin-bottom:14px}
+  .info{background:#f8fafc;border-radius:12px;padding:16px;
+    margin-bottom:16px;text-align:right}
+  .row{display:flex;justify-content:space-between;padding:8px 0;
+    border-bottom:1px dashed #e2e8f0;font-size:13.5px}
+  .row:last-child{border-bottom:0}
+  .row .l{color:#64748b;font-weight:600}
+  .row .v{color:#0f172a;font-weight:700}
+  .badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  .badge{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:800}
+  .badge.h{background:#d1fae5;color:#047857}
+  .badge.d{background:#fef3c7;color:#b45309}
+  .badge.p{background:#dbeafe;color:#1d4ed8}
+  .badge.t{background:#fce7f3;color:#be185d}
+  .footer{margin-top:20px;padding-top:14px;border-top:1px dashed #cbd5e1;
+    font-size:11px;color:#94a3b8}
+  .no-print{position:fixed;top:16px;inset-inline-start:16px;
+    background:#0ea5a4;color:#fff;border:0;padding:12px 24px;
+    border-radius:10px;font-family:inherit;font-size:14px;font-weight:700;
+    cursor:pointer;z-index:999}
+  .no-print.close{inset-inline-start:auto;inset-inline-end:16px;background:#64748b}
+  @media print{.no-print{display:none!important}body{padding:0}}
+</style></head><body>
+<button class="no-print" onclick="window.print()">🖨️ چاپکردن</button>
+<button class="no-print close" onclick="window.close()">✕ داخستن</button>
+<div class="card">
+  <div class="logo">🏪</div>
+  <h1>کارتی ناسین مەندوب</h1>
+  <div class="subtitle">سکان بکە بۆ دەستکەوتنی زانیاری</div>
+  <div class="qr-wrap">${svgData}</div>
+  <h2>${esc(r.name)}</h2>
+  <div class="company">${esc(r.company) || '&nbsp;'}</div>
+  <div class="info">
+    <div class="row"><span class="l">📞 تەلەفۆن</span>
+      <span class="v" dir="ltr">${esc(r.phone) || '—'}</span></div>
+    <div class="row"><span class="l">🆔 کۆدی ناسین</span>
+      <span class="v" style="font-family:monospace;font-size:11px">${esc(r.id)}</span></div>
+    <div class="row"><span class="l">📅 ڕۆژەکان</span>
+      <span class="v">${esc(daysText)}</span></div>
+  </div>
+  <div class="badges">
+    <span class="badge ${r.type === 'dagrtn' ? 'd' : 'h'}">
+      ${r.type === 'dagrtn' ? '📥' : '🚚'} ${typeLabel}</span>
+    <span class="badge ${mode === 'perm' ? 'p' : 't'}">
+      ${mode === 'perm' ? '🔄' : '⚡'} ${modeLabel}</span>
+  </div>
+  <div class="footer">ئەم کارتە لەلایەن سیستەمی بەڕێوەبردنی مەندوبان دروستکراوە</div>
+</div>
+<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),500));<\/script>
+</body></html>`;
+
+  const w = window.open('', '_blank', 'width=800,height=900');
+  if(!w){ toast('تکایە ڕێگە بە پەنجەرەی نوێ بدە', 'err'); return; }
+  w.document.open(); w.document.write(html); w.document.close();
+  toast('کارت کرایەوە 🖨️', 'ok');
+}
+
+/* ===== PRINT REPORT ===== */
+function printReport(){
+  const date = ui.date, dn = dayName(date);
+  const t = dayTotal(date);
+  const scheduled = state.reps.filter(r => repShowsOnDate(r, date));
   const withAmt = state.reps.filter(r => getAmount(r.id, date) > 0);
   const list = [...new Map([...scheduled, ...withAmt].map(r => [r.id, r])).values()]
     .filter(r => getAmount(r.id, date) > 0);
-
   const now = new Date();
   const printDate = `${now.getFullYear()}/${pad(now.getMonth()+1)}/${pad(now.getDate())} — ${pad(now.getHours())}:${pad(now.getMinutes())}`;
   const dd = parseDate(date);
   const dateLong = `${dd.getFullYear()}/${pad(dd.getMonth()+1)}/${pad(dd.getDate())}`;
-
   const rows = list.length ? list.map((r, i) => {
     const amount = getAmount(r.id, date);
-    return `
-      <tr>
-        <td class="num">${i+1}</td>
-        <td><b>${esc(r.name)}</b></td>
-        <td>${esc(r.company) || '—'}</td>
-        <td dir="ltr" class="phone">${esc(r.phone) || '—'}</td>
-        <td class="amount">${fmt(amount)}</td>
-      </tr>`;
-  }).join('') : `<tr><td colspan="5" class="empty-row">هیچ تۆمارێک نییە بۆ ئەم ڕۆژە</td></tr>`;
-
-  const reportHTML = `<!DOCTYPE html>
-<html lang="ku" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<title>ڕاپۆرتی ${dn} — ${dateLong}</title>
-<style>
-  @page { size: A4; margin: 15mm 12mm 15mm 12mm; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Tahoma, 'Noto Naskh Arabic', Arial, sans-serif;
-    color: #1e293b; font-size: 13px; background: #fff; padding: 10mm; }
-  .header { text-align: center; border-bottom: 3px double #0f766e;
-    padding-bottom: 12px; margin-bottom: 18px; }
-  .header .logo { font-size: 32px; margin-bottom: 6px; }
-  .header h1 { font-size: 22px; color: #0f766e; font-weight: 800;
-    margin-bottom: 5px; letter-spacing: -.5px; }
-  .header .subtitle { font-size: 14px; color: #475569; font-weight: 600; }
-  .info-bar { display: flex; justify-content: space-between;
-    background: #f0fdfa; border: 1.5px solid #5eead4; border-radius: 8px;
-    padding: 12px 18px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
-  .info-bar .item { font-size: 13px; color: #0f766e; font-weight: 700; }
-  .info-bar .item b { color: #0f172a; font-size: 14.5px; margin-inline-start: 6px; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 16px;
-    border: 1.5px solid #cbd5e1; }
-  thead th { background: #0f766e; color: #fff; padding: 10px 12px;
-    text-align: right; font-size: 13px; font-weight: 700;
-    border: 1px solid #0f766e; }
-  tbody td { padding: 10px 12px; border: 1px solid #e2e8f0;
-    font-size: 13px; vertical-align: middle; }
-  tbody tr:nth-child(even) { background: #f8fafc; }
-  tbody td.num { text-align: center; color: #64748b; font-weight: 700; width: 45px; }
-  tbody td.phone { text-align: right; font-family: 'Courier New', monospace;
-    font-size: 12.5px; }
-  tbody td.amount { text-align: center; font-weight: 800; color: #0f766e;
-    font-size: 15px; letter-spacing: .3px; }
-  .empty-row { text-align: center; padding: 30px; color: #94a3b8;
-    font-style: italic; }
-  .grand-total { background: linear-gradient(135deg, #0f766e, #0ea5a4);
-    color: #fff; border-radius: 10px; padding: 16px 22px;
-    display: flex; justify-content: space-between; align-items: center;
-    margin-top: 10px; box-shadow: 0 6px 15px -6px rgba(14, 165, 164, .5); }
-  .grand-total .lbl { font-size: 16px; font-weight: 700; }
-  .grand-total .amt { font-size: 26px; font-weight: 800; letter-spacing: -.5px; }
-  .grand-total .amt small { font-size: 14px; font-weight: 600; opacity: .85; }
-  .footer-note { margin-top: 20px; text-align: center; font-size: 11.5px;
-    color: #94a3b8; border-top: 1px dashed #cbd5e1; padding-top: 12px; }
-  .footer-note .sig { margin-top: 30px; display: flex;
-    justify-content: space-between; padding: 0 40px; }
-  .footer-note .sig div { border-top: 1px solid #94a3b8; padding-top: 6px;
-    width: 180px; text-align: center; font-size: 12px; color: #475569; }
-  @media print { body { padding: 0; } .no-print { display: none !important; } }
-  .no-print { position: fixed; top: 16px; inset-inline-start: 16px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff;
-    border: 0; padding: 12px 24px; border-radius: 10px; font-family: inherit;
-    font-size: 14px; font-weight: 700; cursor: pointer;
-    box-shadow: 0 6px 20px -6px #6366f1; z-index: 999; }
-  .no-print:hover { filter: brightness(1.1); }
-  .no-print.close { inset-inline-start: auto; inset-inline-end: 16px;
-    background: #64748b; box-shadow: none; }
-  @media print { .no-print { display: none; } }
-</style>
-</head>
-<body>
-
+    const typeLabel = r.type === 'dagrtn' ? 'داگرتن' : 'هاتن';
+    return `<tr>
+      <td class="num">${i+1}</td><td><b>${esc(r.name)}</b></td>
+      <td>${esc(r.company) || '—'}</td><td>${typeLabel}</td>
+      <td dir="ltr" class="phone">${esc(r.phone) || '—'}</td>
+      <td class="amount">${fmt(amount)}</td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="6" class="empty-row">هیچ تۆمارێک نییە</td></tr>`;
+  const html = `<!DOCTYPE html><html lang="ku" dir="rtl"><head><meta charset="UTF-8">
+<title>ڕاپۆرتی ${dn} — ${dateLong}</title><style>
+  @page{size:A4;margin:15mm 12mm}*{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Tahoma,'Noto Naskh Arabic',Arial,sans-serif;
+    color:#1e293b;font-size:13px;background:#fff;padding:10mm}
+  .header{text-align:center;border-bottom:3px double #0f766e;padding-bottom:12px;margin-bottom:18px}
+  .header .logo{font-size:32px;margin-bottom:6px}
+  .header h1{font-size:22px;color:#0f766e;font-weight:800;margin-bottom:5px}
+  .header .subtitle{font-size:14px;color:#475569;font-weight:600}
+  .info-bar{display:flex;justify-content:space-between;background:#f0fdfa;
+    border:1.5px solid #5eead4;border-radius:8px;padding:12px 18px;
+    margin-bottom:16px;flex-wrap:wrap;gap:10px}
+  .info-bar .item{font-size:13px;color:#0f766e;font-weight:700}
+  .info-bar .item b{color:#0f172a;font-size:14.5px;margin-inline-start:6px}
+  table{width:100%;border-collapse:collapse;margin-bottom:16px;border:1.5px solid #cbd5e1}
+  thead th{background:#0f766e;color:#fff;padding:10px 12px;text-align:right;
+    font-size:13px;font-weight:700;border:1px solid #0f766e}
+  tbody td{padding:10px 12px;border:1px solid #e2e8f0;font-size:13px}
+  tbody tr:nth-child(even){background:#f8fafc}
+  tbody td.num{text-align:center;color:#64748b;font-weight:700;width:45px}
+  tbody td.phone{text-align:right;font-family:'Courier New',monospace;font-size:12.5px}
+  tbody td.amount{text-align:center;font-weight:800;color:#0f766e;font-size:15px}
+  .empty-row{text-align:center;padding:30px;color:#94a3b8;font-style:italic}
+  .grand-total{background:linear-gradient(135deg,#0f766e,#0ea5a4);color:#fff;
+    border-radius:10px;padding:16px 22px;display:flex;justify-content:space-between;
+    align-items:center;margin-top:10px}
+  .grand-total .lbl{font-size:16px;font-weight:700}
+  .grand-total .amt{font-size:26px;font-weight:800}
+  .grand-total .amt small{font-size:14px;font-weight:600;opacity:.85}
+  .footer-note{margin-top:20px;text-align:center;font-size:11.5px;color:#94a3b8;
+    border-top:1px dashed #cbd5e1;padding-top:12px}
+  .footer-note .sig{margin-top:30px;display:flex;justify-content:space-between;padding:0 40px}
+  .footer-note .sig div{border-top:1px solid #94a3b8;padding-top:6px;width:180px;
+    text-align:center;font-size:12px;color:#475569}
+  .no-print{position:fixed;top:16px;inset-inline-start:16px;
+    background:#6366f1;color:#fff;border:0;padding:12px 24px;border-radius:10px;
+    font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;z-index:999}
+  .no-print.close{inset-inline-start:auto;inset-inline-end:16px;background:#64748b}
+  @media print{.no-print{display:none!important}body{padding:0}}
+</style></head><body>
 <button class="no-print" onclick="window.print()">🖨️ چاپکردن</button>
 <button class="no-print close" onclick="window.close()">✕ داخستن</button>
-
-<div class="header">
-  <div class="logo">🏪</div>
-  <h1>ڕاپۆرتی حسابی ڕۆژانە</h1>
-  <div class="subtitle">دوکان — بەڕێوەبردنی مەندوبان و بڕی پارە</div>
-</div>
-
+<div class="header"><div class="logo">🏪</div>
+<h1>ڕاپۆرتی حسابی ڕۆژانە</h1>
+<div class="subtitle">دوکان — بەڕێوەبردنی مەندوبان و بڕی پارە</div></div>
 <div class="info-bar">
   <div class="item">📅 ڕۆژ: <b>${dn}</b></div>
   <div class="item">🗓️ بەروار: <b dir="ltr">${dateLong}</b></div>
   <div class="item">👥 ژمارەی مەندوب: <b>${list.length}</b></div>
   <div class="item">🖨️ بەرواری چاپ: <b dir="ltr">${printDate}</b></div>
 </div>
-
-<table>
-  <thead>
-    <tr>
-      <th style="width:45px">#</th>
-      <th>ناوی مەندوب</th>
-      <th>کۆمپانیا</th>
-      <th style="width:150px">ژمارەی تەلەفۆن</th>
-      <th style="width:140px">بڕی پارە (د.ع)</th>
-    </tr>
-  </thead>
-  <tbody>${rows}</tbody>
-</table>
-
+<table><thead><tr>
+  <th style="width:45px">#</th><th>ناوی مەندوب</th><th>کۆمپانیا</th>
+  <th style="width:80px">جۆر</th><th style="width:140px">تەلەفۆن</th>
+  <th style="width:140px">بڕی پارە (د.ع)</th>
+</tr></thead><tbody>${rows}</tbody></table>
 <div class="grand-total">
   <div class="lbl">💰 کۆی گشتی ئەم ڕۆژە</div>
   <div class="amt">${fmt(t.total)} <small>د.ع</small></div>
 </div>
-
 <div class="footer-note">
   <div>ئەم ڕاپۆرتە خۆکارانە لەلایەن سیستەمی بەڕێوەبردنی مەندوبان دروستکراوە</div>
-  <div class="sig">
-    <div>واژووی بەڕێوەبەر</div>
-    <div>واژووی وەرگر</div>
-  </div>
+  <div class="sig"><div>واژووی بەڕێوەبەر</div><div>واژووی وەرگر</div></div>
 </div>
-
-<script>
-  window.addEventListener('load', function(){
-    setTimeout(function(){ window.print(); }, 400);
-  });
-<\/script>
-
-</body>
-</html>`;
-
+<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),400));<\/script>
+</body></html>`;
   const w = window.open('', '_blank', 'width=900,height=700');
-  if(!w){
-    toast('تکایە ڕێگە بە پەنجەرەی نوێ بدە', 'err');
-    return;
-  }
-  w.document.open();
-  w.document.write(reportHTML);
-  w.document.close();
+  if(!w){ toast('تکایە ڕێگە بە پەنجەرەی نوێ بدە', 'err'); return; }
+  w.document.open(); w.document.write(html); w.document.close();
   toast('ڕاپۆرت کرایەوە 🖨️', 'ok');
 }
 
-/* ================= تابای مەندوبەکان ================= */
 function buildDaysPicker(){
   const box = document.getElementById('daysPick');
   box.innerHTML = WORK_DAYS.map(d => `
@@ -1071,70 +1287,67 @@ function renderReps(){
   const q = ui.search.trim().toLowerCase();
   let list = [...state.reps];
   if(q) list = list.filter(r =>
-    (r.name||'').toLowerCase().includes(q) ||
-    (r.company||'').toLowerCase().includes(q));
-
+    (r.name||'').toLowerCase().includes(q) || (r.company||'').toLowerCase().includes(q));
   const tb = document.getElementById('repsTable');
   if(!list.length){
-    tb.innerHTML = `<tr><td colspan="5"><div class="empty"><span class="big">👥</span>
+    tb.innerHTML = `<tr><td colspan="6"><div class="empty"><span class="big">👥</span>
       ${state.reps.length ? 'هیچ ئەنجامێک نەدۆزرایەوە.' : 'هێشتا هیچ مەندوبێک تۆمار نەکراوە.'}
     </div></td></tr>`;
-    renderWeekSummary();
-    return;
+    renderWeekSummary(); return;
   }
-
   tb.innerHTML = list.map(r => {
-    const days = WORK_DAYS.map(d =>
-      r.days.includes(d.k)
-        ? `<span class="chip-mini on">${d.n}</span>`
-        : `<span class="chip-mini off">${d.n}</span>`
-    ).join('');
+    const type = r.type || 'hatn';
+    const mode = r.mode || 'perm';
+    const typeIcon = type === 'hatn' ? '🚚' : '📥';
+    const typeLabel = type === 'hatn' ? 'هاتن' : 'داگرتن';
+    let days;
+    if(mode === 'perm'){
+      days = WORK_DAYS.map(d =>
+        r.days.includes(d.k)
+          ? `<span class="chip-mini on">${d.n}</span>`
+          : `<span class="chip-mini off">${d.n}</span>`
+      ).join('');
+    } else {
+      days = `<span style="font-size:12px;color:#64748b">${r.oneTimeDate || '—'}</span>`;
+    }
     return `<tr>
       <td><b>${esc(r.name)}</b></td>
       <td>${esc(r.company) || '—'}</td>
-      <td dir="ltr" style="text-align:right">${esc(r.phone) || '—'}</td>
+      <td><span class="chip-${type}">${typeIcon} ${typeLabel}</span></td>
+      <td>${mode === 'perm' ? '<span class="chip-perm">🔄 هەمیشەیی</span>' : '<span class="chip-temp">⚡ ئەم جارە</span>'}</td>
       <td class="days-cell">${days}</td>
       <td class="actions-cell">
+        <button class="btn btn-ghost btn-sm" data-action="showQR" data-id="${r.id}"
+          style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:0">📱 QR</button>
         <button class="btn btn-ghost btn-sm" data-action="editRep" data-id="${r.id}">✏️</button>
         <button class="btn btn-danger btn-sm" data-action="delRep" data-id="${r.id}">🗑️</button>
       </td>
     </tr>`;
   }).join('');
-
   renderWeekSummary();
 }
 
-/* ✅ جەدۆلی کۆی هەفتە — کلیک کراو */
 function renderWeekSummary(){
   const grid = document.getElementById('weekSummaryGrid');
   if(!grid) return;
-
   const today = todayStr();
-  
   const weekDays = [
-    {k:'sat', n:'شەممە',     offset:0},
-    {k:'sun', n:'یەکشەممە',  offset:1},
-    {k:'mon', n:'دووشەممە',  offset:2},
-    {k:'tue', n:'سێشەممە',   offset:3},
-    {k:'wed', n:'چوارشەممە', offset:4},
-    {k:'thu', n:'پێنجشەممە', offset:5}
+    {k:'sat', n:'شەممە', offset:0},{k:'sun', n:'یەکشەممە', offset:1},
+    {k:'mon', n:'دووشەممە', offset:2},{k:'tue', n:'سێشەممە', offset:3},
+    {k:'wed', n:'چوارشەممە', offset:4},{k:'thu', n:'پێنجشەممە', offset:5}
   ];
-
   grid.innerHTML = weekDays.map(d => {
     const dateOfDay = addDays(ui.weekStart, d.offset);
-    const count = state.reps.filter(r => 
-      r.days.includes(d.k) && !isHiddenOnDay(r.id, dateOfDay)
+    const count = state.reps.filter(r =>
+      r.mode === 'perm' && r.days.includes(d.k) && !isHiddenOnDay(r.id, dateOfDay)
     ).length;
     const isEmpty = count === 0;
     const isToday = dateOfDay === today;
     const isActive = dateOfDay === ui.date;
-    
-    // 🎯 کلاسەکان بە ڕیزبەندی دروست
     const classes = ['ws-item'];
     if(isEmpty && !isActive) classes.push('empty-day');
     if(isToday && !isActive) classes.push('is-today');
     if(isActive) classes.push('is-active');
-    
     return `<button type="button" class="${classes.join(' ')}"
       data-action="pickDayFromSummary" data-date="${dateOfDay}" data-day="${d.k}">
       <span class="ws-day">${d.n}</span>
@@ -1151,23 +1364,38 @@ document.getElementById('repForm').addEventListener('submit', e => {
   const name = document.getElementById('repName').value.trim();
   const company = document.getElementById('repCompany').value.trim();
   const phone = document.getElementById('repPhone').value.trim();
+  const type = document.querySelector('input[name="repType"]:checked').value;
+  const mode = document.querySelector('input[name="repMode"]:checked').value;
   const days = [...document.querySelectorAll('#daysPick input:checked')].map(i => i.value);
 
   if(!name){ toast('ناوی مەندوب بنووسە', 'err'); return; }
-  if(!days.length){ toast('لانیکەم یەک ڕۆژ هەڵبژێرە', 'err'); return; }
+  if(mode === 'perm' && !days.length){
+    toast('لانیکەم یەک ڕۆژ هەڵبژێرە', 'err'); return;
+  }
 
   if(id){
     const r = state.reps.find(x => x.id === id);
-    if(r) Object.assign(r, { name, company, phone, days });
-    toast('نوێکرایەوە ✅', 'ok');
+    if(r){
+      Object.assign(r, { name, company, phone, type, mode,
+        days: mode === 'perm' ? days : [],
+        oneTimeDate: mode === 'temp' ? (r.oneTimeDate || ui.date) : null
+      });
+    }
+    toast('مەندوب نوێکرایەوە ✅', 'ok');
   } else {
-    state.reps.push({ id: uid(), name, company, phone, days, created: todayStr() });
+    state.reps.push({
+      id: uid(), name, company, phone, type, mode,
+      days: mode === 'perm' ? days : [],
+      oneTimeDate: mode === 'temp' ? ui.date : null,
+      created: todayStr()
+    });
     toast('مەندوب زیادکرا ✅', 'ok');
   }
   save();
   resetRepForm();
   renderReps();
   renderDayButtons();
+  renderWeekSummary();
 });
 
 function resetRepForm(){
@@ -1176,25 +1404,29 @@ function resetRepForm(){
   document.getElementById('repFormTitle').textContent = 'زیادکردنی مەندوبی نوێ';
   document.getElementById('repCancel').style.display = 'none';
   document.querySelectorAll('#daysPick input').forEach(i => i.checked = false);
+  document.querySelector('input[name="repType"][value="hatn"]').checked = true;
+  document.querySelector('input[name="repMode"][value="perm"]').checked = true;
+  document.getElementById('daysField').style.display = 'block';
 }
 document.getElementById('repCancel').addEventListener('click', resetRepForm);
-
 document.getElementById('repSearch').addEventListener('input', e => {
-  ui.search = e.target.value;
-  renderReps();
+  ui.search = e.target.value; renderReps();
+});
+document.querySelectorAll('input[name="repMode"]').forEach(r => {
+  r.addEventListener('change', e => {
+    document.getElementById('daysField').style.display =
+      e.target.value === 'perm' ? 'block' : 'none';
+  });
 });
 
-/* ================= تابای مێژوو ================= */
 function renderHistory(){
   const tb = document.getElementById('historyTable');
   const dates = Object.keys(state.records).sort((a,b) => b.localeCompare(a));
-
   if(!dates.length){
     tb.innerHTML = `<tr><td colspan="5"><div class="empty"><span class="big">📊</span>
       هێشتا هیچ تۆمارێک نییە.</div></td></tr>`;
     return;
   }
-
   tb.innerHTML = dates.map(date => {
     const t = dayTotal(date);
     if(!t.total) return '';
@@ -1203,35 +1435,28 @@ function renderHistory(){
       <td><span class="chip day">${dayName(date)}</span></td>
       <td>${t.reps}</td>
       <td><b style="color:#0f766e;font-size:16px">${fmt(t.total)}</b> د.ع</td>
-      <td>
-        <button class="btn btn-ghost btn-sm" data-action="goDate" data-date="${date}">👁️ بینین</button>
-      </td>
+      <td><button class="btn btn-ghost btn-sm" data-action="goDate" data-date="${date}">👁️ بینین</button></td>
     </tr>`;
   }).join('');
 }
 
-/* ================= تابای حسابی کەسی ================= */
 function renderPersonal(){
   const total = personalTotal();
   document.getElementById('personalTotal').innerHTML = `${fmt(total)} <small>د.ع</small>`;
   document.getElementById('calcTotal').value = fmt(total);
-
   const tb = document.getElementById('personalTable');
   if(!state.personal.length){
     tb.innerHTML = `<tr><td colspan="4"><div class="empty"><span class="big">💼</span>
       هێشتا هیچ خەرجییەکت تۆمار نەکردووە.</div></td></tr>`;
     return;
   }
-
   const list = [...state.personal].reverse();
   tb.innerHTML = list.map((r, i) => `
     <tr>
       <td style="text-align:center;color:#94a3b8">${state.personal.length - i}</td>
       <td class="amount-cell">${fmt(r.amount)} <span style="font-size:11.5px;color:#64748b">د.ع</span></td>
       <td class="time-cell">${r.date ? r.date + ' — ' : ''}${r.time || ''}</td>
-      <td>
-        <button class="btn btn-danger btn-sm" data-action="delPersonal" data-id="${r.id}">✕</button>
-      </td>
+      <td><button class="btn btn-danger btn-sm" data-action="delPersonal" data-id="${r.id}">✕</button></td>
     </tr>
   `).join('');
 }
@@ -1241,15 +1466,8 @@ document.getElementById('personalForm').addEventListener('submit', e => {
   const f = e.target;
   const fd = new FormData(f);
   const amount = Number(fd.get('amount')) || 0;
-
   if(amount <= 0){ toast('بڕی پارە بنووسە', 'err'); return; }
-
-  state.personal.push({
-    id: uid(),
-    amount,
-    time: nowTime(),
-    date: todayStr()
-  });
+  state.personal.push({ id: uid(), amount, time: nowTime(), date: todayStr() });
   save();
   f.reset();
   toast('خەرجی زیادکرا ✅', 'ok');
@@ -1257,49 +1475,36 @@ document.getElementById('personalForm').addEventListener('submit', e => {
   resetCalcResult();
 });
 
-/* ================= حسابی پارەی ماوە ================= */
 function calculateResult(){
   const total = personalTotal();
   const withdraw = Number(document.getElementById('calcWithdraw').value) || 0;
   const remaining = total - withdraw;
-
   const box = document.getElementById('resultBox');
   box.classList.remove('positive','negative','neutral');
-
   if(remaining > 0){
     box.classList.add('positive');
-    box.innerHTML = `
-      <div class="result-lbl">✅ بڕی ماوە</div>
-      <div class="result-amt">${fmt(remaining)} <small>د.ع</small></div>
-    `;
+    box.innerHTML = `<div class="result-lbl">✅ بڕی ماوە</div>
+      <div class="result-amt">${fmt(remaining)} <small>د.ع</small></div>`;
     toast(`پارەی ماوە: ${fmt(remaining)} د.ع`, 'ok');
   } else if(remaining < 0){
     box.classList.add('negative');
-    box.innerHTML = `
-      <div class="result-lbl">⚠️ کەموکوڕی — زیاتر لێدراوە</div>
-      <div class="result-amt">${fmt(Math.abs(remaining))} <small>د.ع</small></div>
-    `;
+    box.innerHTML = `<div class="result-lbl">⚠️ کەموکوڕی</div>
+      <div class="result-amt">${fmt(Math.abs(remaining))} <small>د.ع</small></div>`;
     toast(`کەموکوڕی: ${fmt(Math.abs(remaining))} د.ع`, 'err');
   } else {
     box.classList.add('neutral');
-    box.innerHTML = `
-      <div class="result-lbl">⚖️ تەواو تەواو — هیچ نەماوە</div>
-      <div class="result-amt">0 <small>د.ع</small></div>
-    `;
-    toast('تەواو تەواو — هیچ نەماوە', 'ok');
+    box.innerHTML = `<div class="result-lbl">⚖️ تەواو تەواو</div>
+      <div class="result-amt">0 <small>د.ع</small></div>`;
+    toast('تەواو تەواو', 'ok');
   }
 }
-
 function resetCalcResult(){
   const box = document.getElementById('resultBox');
   box.className = 'result-box neutral';
-  box.innerHTML = `
-    <div class="result-lbl">💡 ئەنجام لێرە دەردەکەوێت</div>
-    <div class="result-amt">0 <small>د.ع</small></div>
-  `;
+  box.innerHTML = `<div class="result-lbl">💡 ئەنجام لێرە دەردەکەوێت</div>
+    <div class="result-amt">0 <small>د.ع</small></div>`;
 }
 
-/* ================= کلیک ================= */
 document.addEventListener('click', e => {
   const btn = e.target.closest('[data-action]');
   if(!btn) return;
@@ -1307,107 +1512,61 @@ document.addEventListener('click', e => {
 
   if(a === 'printReport'){ printReport(); return; }
   if(a === 'calculateResult'){ calculateResult(); return; }
-
+  if(a === 'showQR'){ showQRModal(btn.dataset.id); return; }
+  if(a === 'closeQR'){ closeQRModal(); return; }
+  if(a === 'downloadQR'){ downloadQR(); return; }
+  if(a === 'printQR'){ printQR(); return; }
   if(a === 'resetCalc'){
     document.getElementById('calcWithdraw').value = '';
-    resetCalcResult();
-    toast('پاککرایەوە', 'ok');
-    return;
+    resetCalcResult(); toast('پاککرایەوە', 'ok'); return;
   }
-
   if(a === 'delPersonal'){
     const id = btn.dataset.id;
     if(!confirm('دڵنیایت ئەم خەرجییە بسڕدرێتەوە؟')) return;
     state.personal = state.personal.filter(r => r.id !== id);
-    save();
-    renderPersonal();
-    resetCalcResult();
-    toast('سڕایەوە', 'ok');
-    return;
+    save(); renderPersonal(); resetCalcResult(); toast('سڕایەوە', 'ok'); return;
   }
-
   if(a === 'removeFromDay'){
-    const repId = btn.dataset.rep;
-    const date = btn.dataset.date;
+    const repId = btn.dataset.rep, date = btn.dataset.date;
     const r = state.reps.find(x => x.id === repId);
     if(!r) return;
-
     const dn = dayName(date);
-    const msg = `⚠️ تەنها بۆ «${dn}» (${date})\n\nمەندوبی «${r.name}» لەم ڕۆژە دەسڕدرێتەوە.\n\n` +
-      `✅ مەندوبەکە لە سیستەم دەمێنێتەوە\n` +
-      `✅ لە ڕۆژەکانی تر وەک خۆی دەردەکەوێت\n` +
-      `✅ بڕی پارەکەی ئەم ڕۆژە دەسڕدرێتەوە`;
-
-    if(!confirm(msg)) return;
-
+    if(!confirm(`⚠️ تەنها بۆ «${dn}» (${date})\n\nمەندوبی «${r.name}» لەم ڕۆژە دەسڕدرێتەوە.\n\n✅ لە سیستەم دەمێنێتەوە\n✅ لە ڕۆژەکانی تر دەردەکەوێت`)) return;
     hideRepOnDay(repId, date);
-    toast(`«${r.name}» لە ${dn} سڕایەوە ✅`, 'ok');
-    renderDay();
-    renderDayButtons();
-    return;
+    toast(`«${r.name}» لە ${dn} سڕایەوە`, 'ok');
+    renderDay(); renderDayButtons(); return;
   }
-
-  /* ✅ کلیک لە جەدۆلی کۆی هەفتە */
   if(a === 'pickDayFromSummary'){
     const date = btn.dataset.date;
-    ui.date = date;
-    ui.weekStart = getWeekStart(date);
-    
-    // 🎯 یەکەم ڕەنگەکە بگۆڕە (نوێکردنەوەی تابای مەندوبەکان)
+    ui.date = date; ui.weekStart = getWeekStart(date);
     renderWeekSummary();
-    
-    // دوای ٢٠٠ میلی چرکە بڕۆ بۆ تابای «حسابی ڕۆژانە»
-    setTimeout(() => {
-      switchTab('today');
-    }, 200);
-    
+    setTimeout(() => { switchTab('today'); }, 200);
     const dn = dayName(date);
-    const cnt = state.reps.filter(r => 
-      r.days.includes(btn.dataset.day) && !isHiddenOnDay(r.id, date)
+    const cnt = state.reps.filter(r =>
+      r.mode === 'perm' && r.days.includes(btn.dataset.day) && !isHiddenOnDay(r.id, date)
     ).length;
-    toast(`ڕۆژی ${dn} — ${cnt} مەندوب`, 'ok');
-    return;
+    toast(`ڕۆژی ${dn} — ${cnt} مەندوب`, 'ok'); return;
   }
-
-  if(a === 'pickDay'){
-    ui.date = btn.dataset.date;
-    ui.weekStart = getWeekStart(ui.date);
-    renderDay();
-    return;
-  }
-
+  if(a === 'pickDay'){ ui.date = btn.dataset.date; ui.weekStart = getWeekStart(ui.date); renderDay(); return; }
   if(a === 'prevWeek'){
     ui.weekStart = addDays(ui.weekStart, -7);
-    const targetKey = dayKey(ui.date);
-    const weekDays = [
-      {k:'sat', offset:0},{k:'sun', offset:1},{k:'mon', offset:2},
-      {k:'tue', offset:3},{k:'wed', offset:4},{k:'thu', offset:5}
-    ];
-    const match = weekDays.find(d => d.k === targetKey);
-    if(match) ui.date = addDays(ui.weekStart, match.offset);
-    renderDay();
-    return;
+    const tk = dayKey(ui.date);
+    const wds = [{k:'sat',offset:0},{k:'sun',offset:1},{k:'mon',offset:2},
+      {k:'tue',offset:3},{k:'wed',offset:4},{k:'thu',offset:5}];
+    const m = wds.find(d => d.k === tk);
+    if(m) ui.date = addDays(ui.weekStart, m.offset);
+    renderDay(); return;
   }
-
   if(a === 'nextWeek'){
     ui.weekStart = addDays(ui.weekStart, 7);
-    const targetKey = dayKey(ui.date);
-    const weekDays = [
-      {k:'sat', offset:0},{k:'sun', offset:1},{k:'mon', offset:2},
-      {k:'tue', offset:3},{k:'wed', offset:4},{k:'thu', offset:5}
-    ];
-    const match = weekDays.find(d => d.k === targetKey);
-    if(match) ui.date = addDays(ui.weekStart, match.offset);
-    renderDay();
-    return;
+    const tk = dayKey(ui.date);
+    const wds = [{k:'sat',offset:0},{k:'sun',offset:1},{k:'mon',offset:2},
+      {k:'tue',offset:3},{k:'wed',offset:4},{k:'thu',offset:5}];
+    const m = wds.find(d => d.k === tk);
+    if(m) ui.date = addDays(ui.weekStart, m.offset);
+    renderDay(); return;
   }
-
-  if(a === 'goDate'){
-    ui.date = btn.dataset.date;
-    ui.weekStart = getWeekStart(ui.date);
-    switchTab('today');
-  }
-
+  if(a === 'goDate'){ ui.date = btn.dataset.date; ui.weekStart = getWeekStart(ui.date); switchTab('today'); }
   if(a === 'editRep'){
     const r = state.reps.find(x => x.id === btn.dataset.id);
     if(!r) return;
@@ -1415,17 +1574,20 @@ document.addEventListener('click', e => {
     document.getElementById('repName').value = r.name || '';
     document.getElementById('repCompany').value = r.company || '';
     document.getElementById('repPhone').value = r.phone || '';
-    document.querySelectorAll('#daysPick input').forEach(i =>
-      i.checked = r.days.includes(i.value));
+    document.querySelector(`input[name="repType"][value="${r.type||'hatn'}"]`).checked = true;
+    document.querySelector(`input[name="repMode"][value="${r.mode||'perm'}"]`).checked = true;
+    document.querySelectorAll('#daysPick input').forEach(i => i.checked = (r.days||[]).includes(i.value));
+    document.getElementById('daysField').style.display = (r.mode === 'temp') ? 'none' : 'block';
     document.getElementById('repFormTitle').textContent = 'دەستکاریکردنی مەندوب';
     document.getElementById('repCancel').style.display = 'inline-flex';
+    switchTab('reps');
+    document.getElementById('repName').focus();
     window.scrollTo({top:0, behavior:'smooth'});
   }
-
   if(a === 'delRep'){
     const r = state.reps.find(x => x.id === btn.dataset.id);
     if(!r) return;
-    if(!confirm(`⚠️ دڵنیایت «${r.name}» بسڕدرێتەوە لە هەموو سیستەم؟\nتۆمارەکانی لە هەموو ڕۆژەکان دەسڕدرێنەوە.`)) return;
+    if(!confirm(`⚠️ دڵنیایت «${r.name}» بسڕدرێتەوە لە هەموو سیستەم؟`)) return;
     state.reps = state.reps.filter(x => x.id !== r.id);
     Object.keys(state.records).forEach(date => {
       delete state.records[date][r.id];
@@ -1435,13 +1597,19 @@ document.addEventListener('click', e => {
       state.hiddenOnDay[date] = state.hiddenOnDay[date].filter(id => id !== r.id);
       if(!state.hiddenOnDay[date].length) delete state.hiddenOnDay[date];
     });
-    save();
-    renderReps(); renderDay(); renderHistory();
-    toast('مەندوب لە سیستەم سڕایەوە', 'ok');
+    save(); renderReps(); renderDay(); renderHistory();
+    toast('مەندوب سڕایەوە', 'ok');
   }
 });
 
-/* ================= پاشەکەوت / گەڕاندنەوە ================= */
+/* close modal on overlay click */
+document.getElementById('qrModal').addEventListener('click', e => {
+  if(e.target.id === 'qrModal') closeQRModal();
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeQRModal();
+});
+
 document.getElementById('btnExport').addEventListener('click', () => {
   const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
@@ -1463,14 +1631,8 @@ document.getElementById('fileImport').addEventListener('change', e => {
       const p = JSON.parse(rd.result);
       if(!p.reps || !p.records) throw new Error();
       if(!confirm('داتای ئێستا دەگۆڕدرێت. دڵنیایت؟')) return;
-      state = {
-        reps: p.reps,
-        records: p.records,
-        personal: p.personal || [],
-        hiddenOnDay: p.hiddenOnDay || {}
-      };
-      save();
-      renderDay(); renderReps(); renderHistory(); renderPersonal();
+      state = { reps: p.reps, records: p.records, personal: p.personal || [], hiddenOnDay: p.hiddenOnDay || {} };
+      save(); renderDay(); renderReps(); renderHistory(); renderPersonal();
       toast('گەڕێندرایەوە ✅', 'ok');
     }catch(err){ toast('فایل نادروستە', 'err'); }
   };
@@ -1478,7 +1640,6 @@ document.getElementById('fileImport').addEventListener('change', e => {
   e.target.value = '';
 });
 
-/* ================= دەستپێکردن ================= */
 (function init(){
   load();
   buildDaysPicker();
